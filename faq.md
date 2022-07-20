@@ -1,3 +1,5 @@
+## FAQs
+
 #### Q: How does the translation of natural language into a SQL query work? 
 A: The translation uses OpenAI Codex APIs. The underlying model needs the following inputs: 
 - Table structure (table name, column names) 
