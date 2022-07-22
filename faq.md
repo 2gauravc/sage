@@ -12,10 +12,10 @@ We have tried the model with simple structure of 5 tables. The results are very 
 
 #### Q:Will it work with the complex data landscape at WBL bank?
 A: The  intelligence is very good at constructing queries as long as the table and column names are explanatory. Its performance with a complex set of tables (like WBL Bank) needs to be tested. 
-It is probably safe to say that the model will needs data sets prepared for data analysis - rather than raw application tables.
+It is probably safe to say that the model will work better with data that is prepared for data analysis - rather than raw application tables.
 
 #### Q: How will the AI understand banking terminology or lexican specific to our data? 
-A: The model is not trained for a specific domain, such as banking. Hence it is likely that it may not understand banking terminology. A likley solution is to use explanatory column names (e.g. utilization rate) so that the model can associate the column with a question on utilization; without having to know its meaning.  
+A: The model is not trained for a specific domain, such as banking. Hence it is likely that it will not understand banking terminology. A likley solution is to use explanatory column names (e.g. utilization rate) so that the model can associate the column with a question on utilization; without having to know its meaning.  
 
 #### Q: Do we ned to give our data to the model? 
 A: No. The model just needs table and column names. 
