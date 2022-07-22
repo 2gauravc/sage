@@ -26,8 +26,8 @@ A: Yes. For training the model, we need to provide a set of natural lanuguage qu
 #### Q: What happens if the AI makes a mistake? 
 A: It is possible (even likely) that the AI will make some mistakes. We need to work out a process that the mistakes are used for model improvement and there is are checks / balances in place to ensure key decisions are made with the right data. As our confidence in the solution increases, we will reduce / remove the checks. 
 
-#### Q: Is it better to expose our C360 to the Product Managers via an excel or Qlikview instead? 
-A: A typical C360 has hundreds of columns. This makes it a very bulky excel. It is not possible for Product Mangers to comprehend / use this excel. On the otehr hand, technology teams find it difficult to design a neat interface to access it. Hence the C360 is only used by Data Analysts - and not by the Product Managers. 
+#### Q: We have a Csutomer 360 table. Is it better to expose the Customer 360 to the Product Managers via an excel or Qlikview instead? 
+A: A typical Customer 360 has hundreds of columns. This makes it a very bulky excel. It is not possible for Product Mangers to comprehend / use this excel. On the other hand, technology teams find it difficult to design a neat interface to access it. Hence the Customer 360 is only used by Data Analysts - and not by the Product Managers. 
 
 #### Q: We have documented the right metadata in Collibra. Can the product managers use Collibra instead?
 A: Product Managers need real data to make decisions; not metadata. 
