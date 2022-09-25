@@ -44,7 +44,7 @@ def main(argv):
 
     ## Get the API response 
     response = get_sql_response(openai.api_key, query_text)
-    print (response)
+    print (response.choices[0]['text'])
 
 
 if __name__ == "__main__":

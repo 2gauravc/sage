@@ -11,8 +11,8 @@ def fetch_response(query_text):
     
     ## Get the API response 
     response = get_sql_response(openai.api_key, query_text)
-    print(response)
-    st.write(res)
+    print(response.choices[0]['text'])
+    st.caption(response.choices[0]['text'])
     return (response)
 
 query_text = ""
@@ -29,5 +29,4 @@ if uploaded_file is not None:
     #st.write(query_text)
 
 res = st.button("Fetch", on_click=fetch_response, args=(query_text))
-
-
+    
