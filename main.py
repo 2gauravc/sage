@@ -5,6 +5,19 @@ import os
 import openai
 import getopt, sys
 
+def get_sql_response(api_key, query_text):
+    # Read the table structure 
+    #print(query_text)
+    response = openai.Completion.create(model="code-davinci-002",
+    prompt=query_text,
+    temperature=0,
+    max_tokens=150,
+    top_p=1,
+    frequency_penalty=0,presence_penalty=0,
+    stop=["#", ";"]
+    )
+    return (response)
+
 def main(argv): 
     try: 
         opts, args = getopt.getopt(argv,"q:", ["query="])
@@ -25,20 +38,12 @@ def main(argv):
     ## Get the API key  
     openai.api_key = os.getenv("OPENAI_API_KEY")
     
-    # Read the table structure 
+    ## Read the query_file
     with open(query_file) as f:
         query_text = f.readlines()
-    print (query_text)
-    #sys.exit() 
 
-    response = openai.Completion.create(model="code-davinci-002",
-    prompt=query_text,
-    temperature=0,
-    max_tokens=150,
-    top_p=1,
-    frequency_penalty=0,presence_penalty=0,
-    stop=["#", ";"]
-    )
+    ## Get the API response 
+    response = get_sql_response(openai.api_key, query_text)
     print (response)
 
 
