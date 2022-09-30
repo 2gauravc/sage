@@ -5,14 +5,15 @@ from io import StringIO
 
 from main import get_sql_response
 
+@st.cache
 def fetch_response(query_text):
     ## Get the API key  
     openai.api_key = os.getenv("OPENAI_API_KEY")
-    
     ## Get the API response 
     response = get_sql_response(openai.api_key, query_text)
     print(response.choices[0]['text'])
-    st.caption(response.choices[0]['text'])
+    #st.caption(response.choices[0]['text'])
+    st.session_state['qres'] = "SELECT" + response.choices[0]['text']
     return (response)
 
 query_text = ""
@@ -29,4 +30,8 @@ if uploaded_file is not None:
     #st.write(query_text)
 
 res = st.button("Fetch", on_click=fetch_response, args=(query_text))
+
+qres = st.text_area(label='The Query',key='qres', height = 250)
+
+
     
