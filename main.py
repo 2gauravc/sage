@@ -4,6 +4,28 @@
 import os
 import openai
 import getopt, sys
+import psycopg2
+import config
+
+def connect_db():
+    """ Connect to the PostgreSQL database server """
+    
+    con = None
+    try:
+        
+        # connect to the PostgreSQL server
+        
+        con = psycopg2.connect(host=config.server,
+                                database=config.database,
+                                user=config.database,
+                                password=config.password)	
+        # create a cursor
+        return (con)
+        
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+        print ('Could not connect to DB. Exiting..')
+        sys.exit(2)
 
 def get_sql_response(api_key, query_text):
     # Read the table structure 
