@@ -4,6 +4,27 @@ from main import get_sql_response
 import openai
 import os 
 
+def connect_db():
+    """ Connect to the PostgreSQL database server """
+    
+    con = None
+    try:
+        
+        # connect to the PostgreSQL server
+        
+        con = psycopg2.connect(host=config.server,
+                                database=config.database,
+                                user=config.database,
+                                password=config.password)	
+        # create a cursor
+        return (con)
+        
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+        print ('Could not connect to DB. Exiting..')
+        sys.exit(2)
+
+
 def get_query_in_api_format(q_txt):
     q_txt1 = "#\n### " + q_txt + "\nSELECT"
     return q_txt1
@@ -31,14 +52,12 @@ def get_schema_as_text(con):
 
     cur.close()
 
-
-con= connect_db()
-t = get_schema_as_text(con)
-#print(t)
-q_txt = "A query to list the names of the departments which employed more than 10 employees in the last 3 months"
-q = get_query_in_api_format(q_txt)
-final_query_for_api = t + q 
-print(final_query_for_api)
+def gen_api_input(q_txt): 
+    con= connect_db()
+    t = get_schema_as_text(con)
+    q = get_query_in_api_format(q_txt)
+    final_query_for_api = t + q 
+    return(final_query_for_api)
 
 ## Get the API key  
 openai.api_key = os.getenv("OPENAI_API_KEY")

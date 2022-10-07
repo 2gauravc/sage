@@ -98,6 +98,15 @@ def main(argv):
     response = get_sql_response(openai.api_key, query_text)
     print (response.choices[0]['text'])
 
+def get_data_from_sql(sql_query):
+    con = connect_db()
+    cur = con.cursor()
+    cur.execute(sql_query)
+    cnt = cur.fetchall()
+    colnames = [desc[0] for desc in cur.description]
+    df = pd.DataFrame(cnt)
+    df.columns = colnames
+    return(df)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
