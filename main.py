@@ -6,6 +6,7 @@ import openai
 import getopt, sys
 import psycopg2
 import config
+import pandas as pd
 
 def connect_db():
     """ Connect to the PostgreSQL database server """
@@ -27,11 +28,40 @@ def connect_db():
         print ('Could not connect to DB. Exiting..')
         sys.exit(2)
 
+def get_schema_as_text():
+    con= connect_db()
+    cur = con.cursor()
+    # Get the list of tables in the DB
+    cur.execute("SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = %s Order By table_name", ('public',))
+    recs = cur.fetchall()
+    #print('\tFound {} Columns'.format(len(recs)))
+    df = pd.DataFrame(recs)
+    df.columns = ['table_name','column_name']
+    #print(df.table_name.unique())
+
+    t = "### Postgres SQL tables, with their properties:\n#\n"
+    for t_name in df.table_name.unique(): 
+        t_txt = '# {}('.format(t_name)
+        col_txt = ','.join(df.loc[df.table_name == t_name,'column_name'])
+        t = t + t_txt+col_txt + ")\n"
+    
+    cur.close()
+    con.close()
+    return(t)
+
 def get_sql_response(api_key, query_text):
-    # Read the table structure 
-    #print(query_text)
+    #Get the Table Schema and format as api input 
+    
+    t = get_schema_as_text()
+
+    # Format the query_text as api input 
+    q = "#\n### " + query_text + "\nSELECT"
+
+    final_query_for_api = t + q
+    print(final_query_for_api)
+
     response = openai.Completion.create(model="code-davinci-002",
-    prompt=query_text,
+    prompt=final_query_for_api,
     temperature=0,
     max_tokens=150,
     top_p=1,
