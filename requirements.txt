@@ -1,2 +1,8 @@
 openai
 streamlit
+io
+sys
+pandas
+psycopg2-binary
+config
+getopt
