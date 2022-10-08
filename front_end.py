@@ -23,7 +23,9 @@ with start_tab:
     st.markdown('###### Sample Questions to ask:')
     st.markdown('###### 1. Find Customers from France')
     st.markdown('###### 2. Show me unique job titles')
+    st.markdown('###### [Download](https://sage-mvp1.s3.amazonaws.com/sales_org_data.xlsx) the data as xl file')
     st.markdown('###### Click on the next tab to try Sage')
+
 
     
 with main_tab:
