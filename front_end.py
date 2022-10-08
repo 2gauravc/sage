@@ -20,8 +20,8 @@ def fetch_response(query_text: str):
     #if response is 200 then send the sql  query to the database and get a response 
     try:
         df = get_data_from_sql(st.session_state['qres'])
-        add_txt = 'Found {} rows'.format(df.shape[0])
-        st.session_state['qres'] = st.session_state['qres'] + add_txt
+        row_cnt_txt = 'Found {} rows'.format(df.shape[0])
+        st.session_state['row_cnt_txt'] = row_cnt_txt
         st.session_state['ret_df'] = df
     except (Exception) as error:
         print(error)
@@ -50,6 +50,7 @@ qres = st.text_area(label='Query Returned by Sage',key='qres', height = 100)
 
 if 'ret_df' in st.session_state:
     st.markdown("#### Data Result")
+    st.markdown("###### {}".format(st.session_state['row_cnt_txt']))
     st.dataframe(st.session_state['ret_df'])
 
 
