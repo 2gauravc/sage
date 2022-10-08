@@ -104,8 +104,14 @@ def get_data_from_sql(sql_query):
     cur.execute(sql_query)
     cnt = cur.fetchall()
     colnames = [desc[0] for desc in cur.description]
-    df = pd.DataFrame(cnt)
-    df.columns = colnames
+    cnt_rec = len(cnt)
+    print("Found {} rows, header {}".format(cnt_rec,colnames))
+    if (cnt_rec>0): 
+        df = pd.DataFrame(cnt)
+        df.columns = colnames
+    else: 
+        df = pd.DataFrame(columns = colnames)
+
     return(df)
 
 if __name__ == "__main__":
