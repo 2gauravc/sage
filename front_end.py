@@ -8,6 +8,7 @@ import sys
 
 from main import get_sql_response
 from main import get_data_from_sql
+from main import get_api_key
 
 start_tab, main_tab = st.tabs(["Read Me", "Try Sage"])
 
@@ -32,7 +33,7 @@ with main_tab:
     @st.cache
     def fetch_response(query_text: str):
         ## Get the API key  
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        openai.api_key = get_api_key()
         ## Get the API response 
         response = get_sql_response(openai.api_key, query_text)
         st.session_state['qres'] = "SELECT" + response.choices[0]['text'] + '\n'

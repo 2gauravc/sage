@@ -7,6 +7,9 @@ import getopt, sys
 import psycopg2
 import config
 import pandas as pd
+def get_api_key():
+    return(config.OPENAI_API_KEY)
+
 
 def connect_db():
     """ Connect to the PostgreSQL database server """
