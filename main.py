@@ -8,10 +8,6 @@ import psycopg2
 import config
 import pandas as pd
 
-def get_openai_api_key():
-    return(config.OPENAI_API_KEY)
-
-
 def connect_db():
     """ Connect to the PostgreSQL database server """
     
@@ -117,6 +113,9 @@ def get_data_from_sql(sql_query):
         df = pd.DataFrame(columns = colnames)
 
     return(df)
+
+def get_openai_api_key():
+    return(config.OPENAI_API_KEY)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
