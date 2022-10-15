@@ -80,11 +80,15 @@ with main_tab:
             st.session_state['sql_result_rows'] = 0
         
 
-    if 'ret_df' in st.session_state:
-        
+    if 'sql_run_status' in st.session_state: 
         st.markdown("#### Data Result")
-        st.markdown("###### {}".format(st.session_state['row_cnt_txt']))
-        st.dataframe(st.session_state['ret_df'])
+        if st.session_state['sql_run_status'] == "failure":
+            st.markdown("###### Query failed to execute. The error has been logged")
+        elif (st.session_state['sql_run_status'] == "success") & ('ret_df' in st.session_state):
+            st.markdown("###### {}".format(st.session_state['row_cnt_txt']))
+            st.dataframe(st.session_state['ret_df'])
+        else:
+             st.markdown("###### Query executed, but no data returned. The error has been logged")
         
     if 'qgen' in st.session_state:
         try: 
