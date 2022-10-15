@@ -18,15 +18,31 @@ def connect_db():
         
         con = psycopg2.connect(host=config.server,
                                 database=config.database,
-                                user=config.database,
+                                user=config.user,
                                 password=config.password)	
         # create a cursor
         return (con)
         
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-        print ('Could not connect to DB. Exiting..')
-        sys.exit(2)
+        print ('Could not connect to DB.')
+        return (error)
+
+def connect_db_log():
+    """ Connect to the PostgreSQL database server """
+    con = None
+    try:
+        # connect to the PostgreSQL server
+        con = psycopg2.connect(host=config.server_log,
+                                database=config.database_log,
+                                user=config.user_log,
+                                password=config.password_log)	
+        return (con)    
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+        print ('Could not connect to log DB.')
+        return(error)
+
 
 def get_schema_as_text():
     con= connect_db()
@@ -117,5 +133,24 @@ def get_data_from_sql(sql_query):
 def get_openai_api_key():
     return(config.OPENAI_API_KEY)
 
+def log_sql_to_db(log_date, question, sql_generated, sage_version, sql_run_status, sql_result_rows):
+    con=connect_db_log()
+    cur = con.cursor()
+    
+    #Replace quotation marks inside the text fields with double quotation marks
+    var_list=[log_date, sage_version, question, sql_generated, sql_run_status, sql_result_rows]
+    var_list = [w.replace("'", "''")  if isinstance(w,str) else w for w in var_list ]
+
+    qu = "INSERT INTO sage.sql_log(log_date, sage_version, question,sql_generated,\
+        sql_run_status, sql_result_rows) VALUES (\'{}\', \'{}\', \'{}\',\'{}\',\
+        \'{}\', {})".format(var_list[0], var_list[1], var_list[2], var_list[3], var_list[4],\
+            var_list[5])
+    cur.execute(qu)
+    con.commit()
+    print("Record Inserted in log DB {}".format(qu))
+    cur.close()
+    con.close()
+
 if __name__ == "__main__":
    main(sys.argv[1:])
+
