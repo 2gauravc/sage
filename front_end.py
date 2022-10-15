@@ -89,6 +89,7 @@ with main_tab:
             st.dataframe(st.session_state['ret_df'])
         else:
              st.markdown("###### Query executed, but no data returned. The error has been logged")
+
         
     if 'qgen' in st.session_state:
         try: 
@@ -100,6 +101,9 @@ with main_tab:
                 sql_generated, sage_version, st.session_state['sql_run_status'], st.session_state['sql_result_rows'])
         except (Exception) as error:
             print ("Error writing to log DB")
-            
+        
+        del st.session_state['qgen']
+
+
 
     
