@@ -40,38 +40,16 @@ with main_tab:
         openai.api_key = get_openai_api_key()
         ## Get the API response 
         response = get_sql_response(openai.api_key, query_text)
-        st.session_state['qres'] = "SELECT" + response.choices[0]['text'] + '\n'
+        st.session_state['qgen'] = "SELECT" + response.choices[0]['text'] + '\n'
         #if response is 200 then send the sql  query to the database and get a response 
-        try:
-            df = get_data_from_sql(st.session_state['qres'])
-            row_cnt_txt = 'Found {} rows'.format(df.shape[0])
-            st.session_state['row_cnt_txt'] = row_cnt_txt
-            st.session_state['ret_df'] = df
-            sql_run_status = "success"
-            sql_result_rows =  df.shape[0]
-        except (Exception) as error:
-            sql_run_status = "failure"
-            sql_result_rows = 0
         
         #Prepare arguments to log_sql_to_db: log_date, question, sql_generated, sage_version, sql_run_status, sql_result_rows
         
-        log_date = datetime.today().strftime('%Y-%m-%d')
-        question = query_text
-        sql_generated = st.session_state['qres']
-        sage_version = "0.3"
-        
-
-        try: 
-            log_sql_to_db(log_date, question, \
-                sql_generated, sage_version, sql_run_status, sql_result_rows)
-        except (Exception) as error:
-            print ("Error writing to log DB")
-            return(error)
-
         # 
         return (response)
 
     query_text = ""
+    
     st.session_state.dis_fetch = True
 
     st.markdown('## Sage Version  **V0.1**')
@@ -86,13 +64,38 @@ with main_tab:
 
     res = st.button("Fetch", on_click=fetch_response, args=(qu,), disabled=st.session_state['dis_fetch'])
 
-    st.markdown("#### Query Generated")
-    qres = st.text_area(label='Query Returned by Sage',key='qres', height = 100)
+    if 'qgen' in st.session_state: 
+        st.markdown("#### Query Generated")
+        qdis = st.text_area(label='Query Returned by Sage',value = st.session_state['qgen'],key='qdis', height = 100)
+        try:
+            df = get_data_from_sql(st.session_state['qgen'])
+            row_cnt_txt = 'Found {} rows'.format(df.shape[0])
+            st.session_state['row_cnt_txt'] = row_cnt_txt
+            st.session_state['ret_df'] = df
+            st.session_state['sql_run_status'] = "success"
+            st.session_state['sql_result_rows'] =  df.shape[0]
+        
+        except (Exception) as error:
+            st.session_state['sql_run_status'] = "failure"
+            st.session_state['sql_result_rows'] = 0
+        
 
     if 'ret_df' in st.session_state:
+        
         st.markdown("#### Data Result")
         st.markdown("###### {}".format(st.session_state['row_cnt_txt']))
         st.dataframe(st.session_state['ret_df'])
-
+        
+    if 'qgen' in st.session_state:
+        try: 
+            log_date = datetime.today().strftime('%Y-%m-%d')
+            question = qu
+            sql_generated = st.session_state['qgen']
+            sage_version = "0.3"
+            log_sql_to_db(log_date, question, \
+                sql_generated, sage_version, st.session_state['sql_run_status'], st.session_state['sql_result_rows'])
+        except (Exception) as error:
+            print ("Error writing to log DB")
+            
 
     
