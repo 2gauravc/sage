@@ -6,6 +6,7 @@ import os
 import psycopg2
 import sys
 import config
+from datetime import datetime
 
 def connect_db():
     """ Connect to the PostgreSQL database server """
@@ -15,17 +16,17 @@ def connect_db():
         
         # connect to the PostgreSQL server
         
-        con = psycopg2.connect(host=config.server,
-                                database=config.database,
-                                user=config.database,
-                                password=config.password)	
+        con = psycopg2.connect(host=config.server_log,
+                                database=config.database_log,
+                                user=config.user_log,
+                                password=config.password_log)	
         # create a cursor
         return (con)
         
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
         print ('Could not connect to DB. Exiting..')
-        sys.exit(2)
+        return(error)
 
 
 def get_query_in_api_format(q_txt):
@@ -98,7 +99,44 @@ def gen_api_input(q_txt):
     final_query_for_api = t + q 
     return(final_query_for_api)
 
+def log_sql_to_db():
+    con=connect_db()
+    cur = con.cursor()
+    log_date = datetime.today().strftime('%Y-%m-%d')
+    question = "How many customers from France"
+    sql_generated = "Select count(*) from customers where country = 'France'"
+    sage_version = "0.3"
+    sql_run_status = "success"
+    sql_result_rows = 12
+    var_list=[log_date, question, sql_generated, sage_version, sql_run_status, sql_result_rows]
+    var_list = [w.replace("'", "''")  if isinstance(w,str) else w for w in var_list ]
+
+    qu = "INSERT INTO sage.sql_log(log_date, sage_version, question,sql_generated,\
+        sql_run_status, sql_result_rows) VALUES (\'{}\', \'{}\', \'{}\',\'{}\',\
+        \'{}\', {})".format(var_list[0], var_list[1], var_list[2], var_list[3], var_list[4],\
+            var_list[5])
+    print(qu)
+    cur.execute(qu)
+    con.commit()
+    print("record inserted")
+    cur.close()
+    con.close()
+
+
+
+
 if __name__ == "__main__":
-   get_tables_as_csv()
+   con = connect_db()
+   print(con) 
+   cur = con.cursor()
+   # Get the list of tables in the DB
+   cur.execute("SELECT * FROM sage.sql_log")
+   recs = cur.fetchall()
+   print('\tFound {} Rows'.format(len(recs)))
+   cur.close()
+   con.close()
+   
+   log_sql_to_db()
+
 
 
