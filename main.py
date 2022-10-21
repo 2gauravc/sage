@@ -74,7 +74,7 @@ def get_sql_response(api_key, query_text):
     q = "#\n### " + query_text + "\nSELECT"
 
     final_query_for_api = t + q
-    print(final_query_for_api)
+    #print(final_query_for_api)
 
     response = openai.Completion.create(model="code-davinci-002",
     prompt=final_query_for_api,
@@ -112,42 +112,55 @@ def main(argv):
 
     ## Get the API response 
     response = get_sql_response(openai.api_key, query_text)
-    print (response.choices[0]['text'])
+    print ("Response Received from API")
 
 def get_data_from_sql(sql_query):
     con = connect_db()
     cur = con.cursor()
-    cur.execute(sql_query)
-    cnt = cur.fetchall()
-    colnames = [desc[0] for desc in cur.description]
-    cnt_rec = len(cnt)
-    print("Found {} rows, header {}".format(cnt_rec,colnames))
-    if (cnt_rec>0): 
-        df = pd.DataFrame(cnt)
-        df.columns = colnames
-    else: 
-        df = pd.DataFrame(columns = colnames)
+    try: 
+        cur.execute(sql_query)
+        status = 'success'
+        pgerror = ""
+        pgcode = ""
+        cnt = cur.fetchall()
+        colnames = [desc[0] for desc in cur.description]
+        cnt_rec = len(cnt)
+        if (cnt_rec>0): 
+            df = pd.DataFrame(cnt)
+            df.columns = colnames
+        else: 
+            df = pd.DataFrame(columns = colnames)
 
-    return(df)
+    
+    except Exception as err:
+        err_type, err_obj, traceback = sys.exc_info()
+        pgerror = err.pgerror
+        pgcode = str(err.pgcode)
+        status = 'error'
+        df = pd.DataFrame()
+
+    err_dict = {'pgerror': pgerror, 'pgcode':pgcode}   
+    
+    return(status, df, err_dict)
 
 def get_openai_api_key():
     return(config.OPENAI_API_KEY)
 
-def log_sql_to_db(log_date, question, sql_generated, sage_version, sql_run_status, sql_result_rows):
+def log_sql_to_db(log_date, question, sql_generated, sage_version, sql_run_status, sql_result_rows, pgerror, pgcode):
     con=connect_db_log()
     cur = con.cursor()
     
     #Replace quotation marks inside the text fields with double quotation marks
-    var_list=[log_date, sage_version, question, sql_generated, sql_run_status, sql_result_rows]
+    var_list=[log_date, sage_version, question, sql_generated, sql_run_status, sql_result_rows, pgerror, pgcode]
     var_list = [w.replace("'", "''")  if isinstance(w,str) else w for w in var_list ]
 
     qu = "INSERT INTO sage.sql_log(log_date, sage_version, question,sql_generated,\
-        sql_run_status, sql_result_rows) VALUES (\'{}\', \'{}\', \'{}\',\'{}\',\
-        \'{}\', {})".format(var_list[0], var_list[1], var_list[2], var_list[3], var_list[4],\
-            var_list[5])
+        sql_run_status, sql_result_rows, pgerror, pgcode) VALUES (\'{}\', \'{}\', \'{}\',\'{}\',\
+        \'{}\', {}, \'{}\', \'{}\')".format(var_list[0], var_list[1], var_list[2], var_list[3], var_list[4],\
+            var_list[5], var_list[6], var_list[7])
     cur.execute(qu)
     con.commit()
-    print("Record Inserted in log DB {}".format(qu))
+    print("Record Inserted in log DB")
     cur.close()
     con.close()
 

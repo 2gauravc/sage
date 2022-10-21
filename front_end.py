@@ -67,23 +67,27 @@ with main_tab:
     if 'qgen' in st.session_state: 
         st.markdown("#### Query Generated")
         qdis = st.text_area(label='Query Returned by Sage',value = st.session_state['qgen'],key='qdis', height = 100)
-        try:
-            df = get_data_from_sql(st.session_state['qgen'])
+        
+        status,df, err_dict = get_data_from_sql(st.session_state['qgen'])
+        if status == 'success':
             row_cnt_txt = 'Found {} rows'.format(df.shape[0])
             st.session_state['row_cnt_txt'] = row_cnt_txt
             st.session_state['ret_df'] = df
             st.session_state['sql_run_status'] = "success"
             st.session_state['sql_result_rows'] =  df.shape[0]
         
-        except (Exception) as error:
+        else: #status is error
             st.session_state['sql_run_status'] = "failure"
             st.session_state['sql_result_rows'] = 0
-        
+            
+        st.session_state['pgerror'] = err_dict['pgerror']
+        st.session_state['pgcode'] = err_dict['pgcode']
+    
 
     if 'sql_run_status' in st.session_state: 
         st.markdown("#### Data Result")
         if st.session_state['sql_run_status'] == "failure":
-            st.markdown("###### Query failed to execute. The error has been logged")
+            st.markdown("###### Query failed to execute. The error code is {}".format(st.session_state['pgcode']))
         elif (st.session_state['sql_run_status'] == "success") & ('ret_df' in st.session_state):
             st.markdown("###### {}".format(st.session_state['row_cnt_txt']))
             st.dataframe(st.session_state['ret_df'])
@@ -98,10 +102,11 @@ with main_tab:
             sql_generated = st.session_state['qgen']
             sage_version = "0.3"
             log_sql_to_db(log_date, question, \
-                sql_generated, sage_version, st.session_state['sql_run_status'], st.session_state['sql_result_rows'])
+                sql_generated, sage_version, st.session_state['sql_run_status'], st.session_state['sql_result_rows'], \
+                    st.session_state['pgerror'], st.session_state['pgcode'])
         except (Exception) as error:
             print ("Error writing to log DB")
-        
+            print(error)
         del st.session_state['qgen']
 
 
