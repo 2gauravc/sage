@@ -11,10 +11,11 @@ from main import get_sql_response
 from main import get_data_from_sql
 from main import get_openai_api_key
 from main import log_sql_to_db
+from main import get_accuracy_stats
 
 sage_version = "0.3"
 
-start_tab, main_tab = st.tabs(["Read Me", "Try Sage"])
+start_tab, main_tab, stat_tab = st.tabs(["Read Me", "Try Sage","Statistics"])
 
 with start_tab:
     st.header("READ ME")
@@ -31,6 +32,12 @@ with start_tab:
     st.markdown('###### [Download](https://sage-mvp1.s3.amazonaws.com/sales_org_data.xlsx) the data as xl file')
     st.markdown('###### Click on the next tab to try Sage')
 
+with stat_tab:
+    st.markdown('#### Sage Accuracy Statistics')
+    num_q, num_q_success = get_accuracy_stats()
+    success_perc = round(num_q_success / num_q *100,1)
+    st.markdown('###### Number of queries generated {}'.format(num_q))
+    st.markdown('###### Query Execution Success {}%'.format(success_perc))
 
     
 with main_tab:

@@ -17,10 +17,10 @@ def connect_db():
         
         # connect to the PostgreSQL server
         
-        con = psycopg2.connect(host=config.server,
-                                database=config.database,
-                                user=config.user,
-                                password=config.password)	
+        con = psycopg2.connect(host=config.server_log,
+                                database=config.database_log,
+                                user=config.user_log,
+                                password=config.password_log)	
         # create a cursor
         return (con)
         
@@ -44,17 +44,34 @@ def get_data_from_sql(sql_query):
         print("pgcode: {}".format(pgcode))
 
 
+def get_accuracy_stats():
+    query ="select  question,sql_generated, count(*) as num_q, \
+        sum(case when sql_run_status = 'success' then 1 else 0 end) as num_q_success\
+            from sage.sql_log\
+                group by question, sql_generated"
+    con = connect_db() 
+    cur = con.cursor()
+    cur.execute(query)
+    cnt = cur.fetchall()
+    colnames = [desc[0] for desc in cur.description]
+    cnt_rec = len(cnt)
+    if (cnt_rec>0): 
+        df = pd.DataFrame(cnt)
+        df.columns = colnames
+    else: 
+        df = pd.DataFrame(columns = colnames)
+    
+    cur.close()
+    con.close()
+    num_q = sum(df.num_q)
+    num_q_success = sum(df.num_q_success)
 
+    print("Number of queries {}".format(num_q))
+    print("Number of success {}".format(num_q_success))
+    return(df)
 
 if __name__ == "__main__":
-   con = connect_db() 
-   cur = con.cursor()
-   # Get the list of tables in the DB
-   sql_query = """SELECT * FROM orders WHERE status = 'Cancelled' AND total_order_value > 10000
-"""
-   get_data_from_sql(sql_query)
-   cur.close()
-   con.close()   
-
+   df = get_accuracy_stats()
+   print("Found {} rows".format(df.shape[0]))
 
 

@@ -112,7 +112,7 @@ def main(argv):
 
     ## Get the API response 
     response = get_sql_response(openai.api_key, query_text)
-    print ("Response Received from API")
+    #print ("Response Received from API")
 
 def get_data_from_sql(sql_query):
     con = connect_db()
@@ -160,9 +160,35 @@ def log_sql_to_db(log_date, question, sql_generated, sage_version, sql_run_statu
             var_list[5], var_list[6], var_list[7])
     cur.execute(qu)
     con.commit()
-    print("Record Inserted in log DB")
+    #print("Record Inserted in log DB")
     cur.close()
     con.close()
+
+def get_accuracy_stats():
+    query ="select  question,sql_generated, count(*) as num_q, \
+        sum(case when sql_run_status = 'success' then 1 else 0 end) as num_q_success\
+            from sage.sql_log\
+                group by question, sql_generated"
+    con = connect_db_log() 
+    cur = con.cursor()
+    cur.execute(query)
+    cnt = cur.fetchall()
+    colnames = [desc[0] for desc in cur.description]
+    cnt_rec = len(cnt)
+    if (cnt_rec>0): 
+        df = pd.DataFrame(cnt)
+        df.columns = colnames
+    else: 
+        df = pd.DataFrame(columns = colnames)
+    
+    cur.close()
+    con.close()
+    num_q = sum(df.num_q)
+    num_q_success = sum(df.num_q_success)
+
+    return(num_q, num_q_success)
+    
+
 
 if __name__ == "__main__":
    main(sys.argv[1:])
