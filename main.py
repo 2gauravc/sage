@@ -165,6 +165,7 @@ def log_sql_to_db(log_date, question, sql_generated, sage_version, sql_run_statu
     con.close()
 
 def get_accuracy_stats():
+    print("Getting accuracy stats get_accuracy__stats")
     query ="select  question,sql_generated, count(*) as num_q, \
         sum(case when sql_run_status = 'success' then 1 else 0 end) as num_q_success\
             from sage.sql_log\
@@ -188,8 +189,28 @@ def get_accuracy_stats():
 
     return(num_q, num_q_success)
     
+def get_failed_sql():
+    print("Getting failed SQL get_failed_sql")
+    query =" SELECT log_id, log_date,question, sql_generated  from sage.sql_log WHERE sql_run_status = 'failure' "
+    con = connect_db_log() 
+    cur = con.cursor()
+    cur.execute(query)
+    cnt = cur.fetchall()
+    colnames = [desc[0] for desc in cur.description]
+    cnt_rec = len(cnt)
+    if (cnt_rec>0): 
+        df = pd.DataFrame(cnt)
+        df.columns = colnames
+    else: 
+        df = pd.DataFrame(columns = colnames)
+    
+    cur.close()
+    con.close()
 
+    return (df)
 
 if __name__ == "__main__":
-   main(sys.argv[1:])
+   df=get_failed_sql()
+   print("rows {}".format(df.shape[0]))
+   print(df)
 

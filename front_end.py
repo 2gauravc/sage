@@ -12,10 +12,20 @@ from main import get_data_from_sql
 from main import get_openai_api_key
 from main import log_sql_to_db
 from main import get_accuracy_stats
+from main import get_failed_sql
 
-sage_version = "0.3"
+sage_version = "0.4"
 
-start_tab, main_tab, stat_tab = st.tabs(["Read Me", "Try Sage","Statistics"])
+if "row" not in st.session_state:
+    st.session_state.row = 0
+
+def next_row():
+    st.session_state.row += 1
+
+def prev_row():
+    st.session_state.row -= 1
+
+start_tab, main_tab, stat_tab, expert_tab = st.tabs(["Read Me", "Try Sage","Statistics","Expert SQL"])
 
 with start_tab:
     st.header("READ ME")
@@ -33,8 +43,14 @@ with start_tab:
     st.markdown('###### Click on the next tab to try Sage')
 
 with stat_tab:
+    @st.cache
+    def get_accuracy_stats_fe():
+        print("Got Accuracy Metrics get_accuracy_stats_fe")
+        return (get_accuracy_stats())
+
+    st.header("ACCURACY STATISTICS")
     st.markdown('#### Sage Accuracy Statistics')
-    num_q, num_q_success = get_accuracy_stats()
+    num_q, num_q_success = get_accuracy_stats_fe()
     success_perc = round(num_q_success / num_q *100,1)
     st.markdown('###### Number of queries generated {}'.format(num_q))
     st.markdown('###### Query Execution Success {}%'.format(success_perc))
@@ -47,6 +63,7 @@ with main_tab:
         openai.api_key = get_openai_api_key()
         ## Get the API response 
         response = get_sql_response(openai.api_key, query_text)
+        print("Got SQL Response get_sql_response")
         st.session_state['qgen'] = "SELECT" + response.choices[0]['text'] + '\n'
         #if response is 200 then send the sql  query to the database and get a response 
         
@@ -76,6 +93,7 @@ with main_tab:
         qdis = st.text_area(label='Query Returned by Sage',value = st.session_state['qgen'],key='qdis', height = 100)
         
         status,df, err_dict = get_data_from_sql(st.session_state['qgen'])
+        print("Got fata from sql get_data_from_sql")
         if status == 'success':
             row_cnt_txt = 'Found {} rows'.format(df.shape[0])
             st.session_state['row_cnt_txt'] = row_cnt_txt
@@ -111,11 +129,39 @@ with main_tab:
             log_sql_to_db(log_date, question, \
                 sql_generated, sage_version, st.session_state['sql_run_status'], st.session_state['sql_result_rows'], \
                     st.session_state['pgerror'], st.session_state['pgcode'])
+            print ("Logged to DB log_sql_to_db")
         except (Exception) as error:
             print ("Error writing to log DB")
             print(error)
         del st.session_state['qgen']
 
+with expert_tab:
+    @st.cache
+    def get_failed_sql_fe():
+        print("Getting failed SQL get_failed_sql_fe")
+        return(get_failed_sql())
 
+    st.header("Expert SQL")
+    st.markdown('###### Help train Sage. Give us the right SQL.')
+    df = get_failed_sql_fe()
+    test = df.astype(str)
+    col1, col2, _, _ = st.columns([0.1, 0.17, 0.1, 0.63])
+    
+    if "row" not in st.session_state:
+        st.session_state.row = 0
+    
+    if st.session_state.row < len(df.index)-1:
+        col2.button(">", on_click=next_row)
+    else:
+        col2.write("") 
+    
+    if st.session_state.row > 0:
+        col1.button("<", on_click=prev_row)
+    else:
+        col1.write("") 
+    #print(st.session_state.row)
+
+    
+    st.write(test.iloc[st.session_state.row])
 
     
