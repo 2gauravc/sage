@@ -68,7 +68,7 @@ def get_accuracy_stats():
 
     print("Number of queries {}".format(num_q))
     print("Number of success {}".format(num_q_success))
-    return(df)
+    return(num_q, num_q_success)
 
 if __name__ == "__main__":
    df = get_accuracy_stats()

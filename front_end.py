@@ -13,6 +13,7 @@ from main import get_openai_api_key
 from main import log_sql_to_db
 from main import get_accuracy_stats
 from main import get_failed_sql
+from main import update_log_sql_to_db
 
 sage_version = "0.4"
 
@@ -140,10 +141,23 @@ with expert_tab:
     def get_failed_sql_fe():
         print("Getting failed SQL get_failed_sql_fe")
         return(get_failed_sql())
+    
+    @st.cache
+    def try_save_expert_sql(log_id, esql):
+        status,df, err_dict = get_data_from_sql(esql)
+        if status == 'success':
+            row_cnt_txt = 'Found {} rows'.format(df.shape[0])
+            print ("Expert SQL success. {}".format(row_cnt_txt))
+            update_log_sql_to_db(log_id, esql)
+        else: #status is error
+            print ("Expert SQL failed. error code is {}".format(err_dict['pgcode']))
+            
+        return
 
     st.header("Expert SQL")
     st.markdown('###### Help train Sage. Give us the right SQL.')
     df = get_failed_sql_fe()
+    st.markdown('###### Found {} failed SQLs'.format(df.shape[0]))
     test = df.astype(str)
     col1, col2, _, _ = st.columns([0.1, 0.17, 0.1, 0.63])
     
@@ -161,7 +175,14 @@ with expert_tab:
         col1.write("") 
     #print(st.session_state.row)
 
-    
     st.write(test.iloc[st.session_state.row])
 
-    
+    st.session_state.dis_esql_try = True
+
+    exp_sql = st.text_area(label="Provide the Correct SQL", key='esql')
+    #print (qu) 
+
+    if len(exp_sql) > 0:
+        st.session_state.dis_esql_try = False
+
+    res = st.button("Try this instead", on_click=try_save_expert_sql, args=(test.iloc[st.session_state.row,0],exp_sql), disabled=st.session_state['dis_esql_try'])

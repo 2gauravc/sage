@@ -164,8 +164,25 @@ def log_sql_to_db(log_date, question, sql_generated, sage_version, sql_run_statu
     cur.close()
     con.close()
 
+def update_log_sql_to_db(log_id, right_sql): 
+    con=connect_db_log()
+    cur = con.cursor()
+    
+    #Replace quotation marks inside the text fields with double quotation marks
+    var_list=[log_id, right_sql]
+    var_list = [w.replace("'", "''")  if isinstance(w,str) else w for w in var_list ]
+
+    qu = "UPDATE sage.sql_log SET right_sql = \'{}' WHERE log_id = {}".format(var_list[1], var_list[0])
+    
+    cur.execute(qu)
+    con.commit()
+    print("Record updated in log DB")
+    cur.close()
+    con.close()
+
+
 def get_accuracy_stats():
-    print("Getting accuracy stats get_accuracy__stats")
+    #print("Getting accuracy stats get_accuracy__stats")
     query ="select  question,sql_generated, count(*) as num_q, \
         sum(case when sql_run_status = 'success' then 1 else 0 end) as num_q_success\
             from sage.sql_log\
@@ -190,7 +207,7 @@ def get_accuracy_stats():
     return(num_q, num_q_success)
     
 def get_failed_sql():
-    print("Getting failed SQL get_failed_sql")
+    #print("Getting failed SQL get_failed_sql")
     query =" SELECT log_id, log_date,question, sql_generated  from sage.sql_log WHERE sql_run_status = 'failure' "
     con = connect_db_log() 
     cur = con.cursor()
